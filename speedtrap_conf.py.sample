@@ -1,0 +1,21 @@
+#
+# speedtrap_conf.py	SpeedTrap configuration file
+# version		0.0.1
+# author		Brian Walter @briantwalter
+# description		Configuration for speedtrap.py
+#
+
+[speedtrap]
+ledtop: 25
+ledentr: 7
+ledexit: 8
+entr: 23
+exit: 24
+prec: 3
+dist: 11.5
+loop: .01
+mphi: 0.0568181818
+apiend: http://dash.app.walternet.us/widgets
+apikey: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+logfile: /tmp/speedtrap.log
+pidfile: /tmp/speedtrap.pid
