@@ -26,6 +26,7 @@ config.read('speedtrap_conf.py')
 ledtop = config.getint('speedtrap', 'ledtop')
 ledentr = config.getint('speedtrap', 'ledentr')
 ledexit = config.getint('speedtrap', 'ledexit')
+trigger = config.getint('speedtrap', 'trigger')
 entr = config.getint('speedtrap', 'entr')
 exit = config.getint('speedtrap', 'exit')
 prec = config.getint('speedtrap', 'prec')
@@ -45,6 +46,19 @@ def smarttunnelon():
     GPIO.output(ledentr, GPIO.HIGH)
     GPIO.setup(ledexit, GPIO.OUT)
     GPIO.output(ledexit, GPIO.HIGH)
+    #payload = {'auth_token': apikey, 'text': "SmartTunnel is ON" }
+    #req = requests.post(apiend + "/banner", data=json.dumps(payload))
+ 
+# switch off smarttunel
+def smarttunneloff():
+    GPIO.setup(ledtop, GPIO.OUT)
+    GPIO.output(ledtop, GPIO.LOW)
+    GPIO.setup(ledentr, GPIO.OUT)
+    GPIO.output(ledentr, GPIO.LOW)
+    GPIO.setup(ledexit, GPIO.OUT)
+    GPIO.output(ledexit, GPIO.LOW)
+    #payload = {'auth_token': apikey, 'text': "SmartTunnel is OFF" }
+    #req = requests.post(apiend + "/banner", data=json.dumps(payload))
  
 # get timing value from pin
 def traptime(pin):
@@ -59,28 +73,38 @@ def traptime(pin):
  
 # main
 def main():
+    # zero out top speed value before the loop
+    # set up the GPIO tunnel switch pin to low by default 
+    GPIO.setup(trigger, GPIO.OUT, pull_up_down = GPIO.PUD_DOWN)
     topspeed = 0
     while True:                                     
-        val = traptime(entr) 
-        if len(str(val)) >= prec:
-            entertime = datetime.now()
-            while True:
-                val = traptime(exit)
-                if len(str(val)) >= prec:
-                    exittime = datetime.now()
-                    delta = exittime - entertime
-                    ips = dist / delta.total_seconds()
-                    mph = ips * mphi
-                    speed = str("%.2f" % mph)
-                    if float(speed) > 10:
-                        speed = 0
-                    payload = {'auth_token': apikey, 'value': speed }
-                    req = requests.post(apiend + "/lastmph", data=json.dumps(payload))
-                    if float(speed) > float(topspeed):
+        if (GPIO.input(trigger) == GPIO.HIGH):
+            smarttunnelon()
+            val = traptime(entr) 
+            if len(str(val)) >= prec:
+                entertime = datetime.now()
+                while True:
+                    val = traptime(exit)
+                    if len(str(val)) >= prec:
+                        exittime = datetime.now()
+                        delta = exittime - entertime
+                        ips = dist / delta.total_seconds()
+                        mph = ips * mphi
+                        speed = str("%.2f" % mph)
+                        if float(speed) > 10:
+                            speed = 0
                         payload = {'auth_token': apikey, 'value': speed }
-                        req = requests.post(apiend + "/bestmph", data=json.dumps(payload))
-                        topspeed = speed
-                    break
+                        req = requests.post(apiend + "/lastmph", data=json.dumps(payload))
+                        if float(speed) > float(topspeed):
+                            payload = {'auth_token': apikey, 'value': speed }
+                            req = requests.post(apiend + "/bestmph", data=json.dumps(payload))
+                            topspeed = speed
+                        break
+        else:
+            smarttunneloff()
+            time.sleep(2)  
+    GPIO.cleanup()
+
 # main app class
 class App():
     def __init__(self):
