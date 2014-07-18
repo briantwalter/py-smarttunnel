@@ -11,10 +11,12 @@
 import requests
 import simplejson as json
 import RPi.GPIO as GPIO
+import os
 import time
 from daemon import runner
 from datetime import datetime
 from ConfigParser import SafeConfigParser
+from multiprocessing import Process
 
 # GPIO set up
 GPIO.setmode(GPIO.BCM)
@@ -37,6 +39,7 @@ apiend = config.get('speedtrap', 'apiend')
 apikey = config.get('speedtrap', 'apikey')
 logfile = config.get('speedtrap', 'logfile')
 pidfile = config.get('speedtrap', 'pidfile')
+audfile = config.get('speedtrap', 'audfile')
 
 # switch on smarttunel
 def smarttunnelon():
@@ -59,7 +62,11 @@ def smarttunneloff():
     GPIO.output(ledexit, GPIO.LOW)
     #payload = {'auth_token': apikey, 'text': "SmartTunnel is OFF" }
     #req = requests.post(apiend + "/banner", data=json.dumps(payload))
- 
+
+# play crowd noise
+def crowd():
+    os.system("/usr/bin/mpg123 -q " + audfile)
+
 # get timing value from pin
 def traptime(pin):
     reading = 0
@@ -98,6 +105,9 @@ def main():
                         if float(speed) > float(topspeed):
                             payload = {'auth_token': apikey, 'value': speed }
                             req = requests.post(apiend + "/bestmph", data=json.dumps(payload))
+                            # kick off the noise in an async process 
+                            p = Process(target=crowd)
+                            p.start()
                             topspeed = speed
                         break
         else:

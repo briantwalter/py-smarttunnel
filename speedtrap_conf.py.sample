@@ -9,6 +9,7 @@
 ledtop: 25
 ledentr: 7
 ledexit: 8
+trigger: 2
 entr: 23
 exit: 24
 prec: 3
@@ -16,6 +17,7 @@ dist: 11.5
 loop: .01
 mphi: 0.0568181818
 apiend: http://dash.app.walternet.us/widgets
-apikey: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+apikey: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 logfile: /tmp/speedtrap.log
 pidfile: /tmp/speedtrap.pid
+audfile: /home/pi/Dev/py-smarttunnel/audio/crowd.mp3
