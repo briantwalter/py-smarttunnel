@@ -16,7 +16,6 @@ import time
 from daemon import runner
 from datetime import datetime
 from ConfigParser import SafeConfigParser
-from multiprocessing import Process
 
 # GPIO set up
 GPIO.setmode(GPIO.BCM)
@@ -65,7 +64,7 @@ def smarttunneloff():
 
 # play crowd noise
 def crowd():
-    os.system("/usr/bin/mpg123 -q " + audfile)
+    os.system("/usr/bin/mpg123 -q " + audfile + " &")
 
 # get timing value from pin
 def traptime(pin):
@@ -105,9 +104,8 @@ def main():
                         if float(speed) > float(topspeed):
                             payload = {'auth_token': apikey, 'value': speed }
                             req = requests.post(apiend + "/bestmph", data=json.dumps(payload))
-                            # kick off the noise in an async process 
-                            p = Process(target=crowd)
-                            p.start()
+                            # kick off the noise if bestmph 
+                            crowd()
                             topspeed = speed
                         break
         else:
